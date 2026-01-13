@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>カーソルメニュー</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{margin:0;font-family:sans-serif;background:#111;color:#fff;display:flex;justify-content:center;overflow-x:hidden;}
+#game{width:100%;max-width:480px;padding:10px;position:relative;}
+.screen{display:none;}
+.screen.active{display:block;}
+    
+button {padding:12px 16px;width:100%;margin:5px 0;font-size:14px;}
+
+/*  プロパティ
+  button {cursor:なになに;}
+  auto    　　　勝手に決める
+  default　　　 デフォルト
+  pointer　　　 指の形
+  move          十字の矢印
+  cell          excelのセル選択風のやつ
+  grab          掴む
+  grabbing      grabとセットで使う(activeで掴むような動作)
+  text　　　　　テキストのI字型カーソル
+  wait 　　　　 砂時計やスピナー状態
+  help　　　　　疑問符付きのカーソル
+  progress      矢印+ぐるぐる+砂時計
+  none 　　　　 カーソルが非表示
+  alies 　　　　ショートカット
+  context-menu  メニューアイコン+矢印
+  vertical-text 縦書きテキストの選択用
+  n-resize      上のサイズ変更用
+  e-resize      右
+  s-resize　　　下
+  w-resize　　　左
+  nw-resize     左上
+  ne-resize     右上
+  se-resize     右下
+  ew-resize     左下
+  ns-resize     上下
+  ew-resize　   左右
+  news-resize　 斜め
+  col-resize    幅を変更するとき
+  row-resize    高さを変更するとき
+  all-scroll    全方向にドラッグしてスクロールする
+  copy          矢印の横に+マーク
+  no-drop       矢印、禁止マーク
+  not-allowed　 禁止マーク
+  zoom-in 　　　ズームイン
+  zoom-out      ズームアウト
+  initial       不明
+  crosshair     十字線  */
+
+    
+#battle-log{height:180px;overflow-y:auto;background:#222;padding:5px;margin:5px 0;border-radius:5px;font-size:14px;}
+.hp-bar,.mp-bar,.exp-bar{background:#555;height:16px;border-radius:5px;margin:3px 0;position:relative;}
+.hp-bar-inner{background:#4caf50;height:100%;width:100%;border-radius:5px;transition:width 0.3s;}
+.mp-bar-inner{background:#2196f3;height:100%;width:100%;border-radius:5px;transition:width 0.3s;}
+.exp-bar-inner{background:#ff9800;height:100%;width:0%;border-radius:5px;transition:width 0.5s;}
+.cooldown{font-size:12px;color:#aaa;}
+.enemy-container{margin:5px 0;position:relative;}
+.enemy-box{background:#333;padding:5px;border-radius:5px;margin-bottom:5px;position:relative;cursor:pointer;transition: all 0.3s;}
+.enemy-box.selected{border:2px solid #ff0;transform:scale(1.05);}
+.status{font-size:12px;color:#ff0;margin-left:5px;}
+.enemy-hp{font-size:12px;color:#f00;position:absolute;right:5px;top:5px;}
+.bg-flash{position:absolute;top:0;left:0;width:100%;height:100%;background:#fff;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:1000;}
+#player-container{position:relative;height:150px;}
+#player-img,.enemy-img{position:absolute;bottom:0;width:80px;transition: all 0.3s;}
+.effect-img{position:absolute;width:60px;height:60px;pointer-events:none;animation:effectMove 0.8s forwards;}
+@keyframes effectMove{0%{opacity:1;}100%{opacity:0;transform:translateY(-50px) scale(1.5);}}
+h1{text-align:center;margin-top:50px;}
+.start-btn{text-align:center;margin-top:30px;}
+.hp-mp-text{font-size:12px;margin-left:5px;}
+</style>
+</head>
+<body>
+<!--  プロパティ
+  button {cursor:なになに;}
+  auto    　　　勝手に決める
+  default　　　 デフォルト
+  pointer　　　 指の形
+  move          十字の矢印
+  cell          excelのセル選択風のやつ
+  grab          掴む
+  grabbing      grabとセットで使う(activeで掴むような動作)
+  text　　　　　テキストのI字型カーソル
+  wait 　　　　 砂時計やスピナー状態
+  help　　　　　疑問符付きのカーソル
+  progress      矢印+ぐるぐる+砂時計
+  none 　　　　 カーソルが非表示
+  alies 　　　　ショートカット
+  context-menu  メニューアイコン+矢印
+  vertical-text 縦書きテキストの選択用
+  n-resize      上のサイズ変更用
+  e-resize      右
+  s-resize　　　下
+  w-resize　　　左
+  nw-resize     左上
+  ne-resize     右上
+  se-resize     右下
+  ew-resize     左下
+  ns-resize     上下
+  ew-resize　   左右
+  news-resize　 斜め
+  col-resize    幅を変更するとき
+  row-resize    高さを変更するとき
+  all-scroll    全方向にドラッグしてスクロールする
+  copy          矢印の横に+マーク
+  no-drop       矢印、禁止マーク
+  not-allowed　 禁止マーク
+  zoom-in 　　　ズームイン
+  zoom-out      ズームアウト
+  initial       不明
+  crosshair     十字線  -->
+<div id="game">
+<div id="screen-start" class="screen active">
+<h1>カーソルメニュー</h1>
+<div class="start-btn">
+    <div>
+<!--  プロパティ
+  button {cursor:なになに;}
+  auto    　　　勝手に決める
+  default　　　 デフォルト
+  pointer　　　 指の形
+  move          十字の矢印
+  cell          excelのセル選択風のやつ
+  grab          掴む
+  grabbing      grabとセットで使う(activeで掴むような動作)
+  text　　　　　テキストのI字型カーソル
+  wait 　　　　 砂時計やスピナー状態
+  help　　　　　疑問符付きのカーソル
+  progress      矢印+ぐるぐる+砂時計
+  none 　　　　 カーソルが非表示
+  alies 　　　　ショートカット
+  context-menu  メニューアイコン+矢印
+  vertical-text 縦書きテキストの選択用
+  n-resize      上のサイズ変更用
+  e-resize      右
+  s-resize　　　下
+  w-resize　　　左
+  nw-resize     左上
+  ne-resize     右上
+  se-resize     右下
+  ew-resize     左下
+  ns-resize     上下
+  ew-resize　   左右
+  news-resize　 斜め
+  col-resize    幅を変更するとき
+  row-resize    高さを変更するとき
+  all-scroll    全方向にドラッグしてスクロールする
+  copy          矢印の横に+マーク
+  no-drop       矢印、禁止マーク
+  not-allowed　 禁止マーク
+  zoom-in 　　　ズームイン
+  zoom-out      ズームアウト
+  initial       不明
+  crosshair     十字線  -->
+  <button style="cursor:auto;">auto</button>
+  <button style="cursor:default;">default</button>
+  <button style="cursor:pointer;">pointer</button>
+  <button style="cursor:move;">move</button>
+  <button style="cursor:cell;">cell</button>
+  <button style="cursor:grab;">grab</button>
+  <button style="cursor:grabbing;">grabbing</button>
+  <button style="cursor:text;">text</button>
+  <button style="cursor:wait;">wait</button>
+  <button style="cursor:help;">help</button>
+  <button style="cursor:progress;">progress</button>
+  <button style="cursor:move;">move</button>
+  <button style="cursor:none;">none</button>
+  <button style="cursor:alies;">alies</button>
+  <button style="cursor:context-menu;">context-menu</button>
+  <button style="cursor:vertical-text;">vertical-text</button>
+  <button style="cursor:n-resize;">n-resize</button>
+  <button style="cursor:e-resize;">e-resize</button>
+  <button style="cursor:s-resize;">s-resize</button>
+  <button style="cursor:w-resize;">w-resize</button>
+  <button style="cursor:nw-resize;">nw-resize</button>
+  <button style="cursor:ne-resize;">ne-resize</button>
+  <button style="cursor:se-resize;">se-resize</button>
+  <button style="cursor:ew-resize;">ew-resize</button>
+  <button style="cursor:news-resize;">news-resize</button>
+  <button style="cursor:col-resize;">col-resize</button>
+  <button style="cursor:row-resize;">row-resize</button>
+  <button style="cursor:all-scroll;">all-scroll</button>
+  <button style="cursor:copy;">copy</button>
+  <button style="cursor:no-drop;">no-drop</button>
+  <button style="cursor:not-allowed;">not-allowed</button>
+  <button style="cursor:zoom-in;">zoom-in</button>
+  <button style="cursor:zoom-out;">zoom-out</button>
+  <button style="cursor:crosshair;">crosshair</button>
+        </div>
+</div>
+</div>
+
+</div>
+
+</body>
+</html>
